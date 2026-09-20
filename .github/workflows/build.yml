@@ -25,7 +25,7 @@ jobs:
 
       - name: Build EXE with PyInstaller
         run: |
-          pyinstaller --noconfirm --onefile --windowed --icon="/assets/images/favicon.ico" --name "Mughal-E-Azam-POS" --hidden-import=win32print --hidden-import=win32ui --hidden-import=pywintypes --add-data "/index.html;." --add-data "/assets;assets" /app.py
+          pyinstaller --noconfirm --onefile --windowed --icon="assets/images/favicon.ico" --name "Mughal-E-Azam-POS" --hidden-import=win32print --hidden-import=win32ui --hidden-import=pywintypes --add-data "index.html;." --add-data "assets;assets" app.py
 
       - name: Upload EXE Artifact
         uses: actions/upload-artifact@v4

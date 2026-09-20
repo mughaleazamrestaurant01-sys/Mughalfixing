@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermal Receipts - Classic Monospace POS (Design #2)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --receipt-font: 'Courier Prime', 'JetBrains Mono', 'Courier New', monospace;
+            --receipt-bg: #ffffff;
+            --receipt-text-primary: #000000;
+            --receipt-text-muted: #262626;
+            --receipt-border: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #e2e8f0;
+            font-family: var(--receipt-font);
+            padding: 30px 15px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .receipts-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            align-items: flex-start;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* Thermal Paper Container */
+        .receipt-card {
+            width: 100%;
+            max-width: 320px;
+            background-color: var(--receipt-bg);
+            color: var(--receipt-text-primary);
+            font-family: var(--receipt-font);
+            font-size: 12px;
+            line-height: 1.25;
+            padding: 20px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 2px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Paper Serrated Bottom Cut Effect */
+        .receipt-card::after {
+            content: "";
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(-45deg, transparent 4px, #ffffff 0), linear-gradient(45deg, transparent 4px, #ffffff 0);
+            background-repeat: repeat-x;
+            background-size: 8px 8px;
+        }
+
+        /* Typography & Layout Helpers */
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        
+        .font-bold { font-weight: 700; }
+        .uppercase { text-transform: uppercase; }
+        
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .divider-single {
+            margin: 4px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            letter-spacing: -1px;
+            user-select: none;
+        }
+
+        .divider-double {
+            margin: 4px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            letter-spacing: -1px;
+            user-select: none;
+        }
+
+        .spacing-sm > * + * {
+            margin-top: 2px;
+        }
+
+        .spacing-md > * + * {
+            margin-top: 6px;
+        }
+
+        /* Barcode Simulation */
+        .barcode {
+            margin: 10px auto 4px auto;
+            height: 32px;
+            width: 80%;
+            background: repeating-linear-gradient(
+                90deg,
+                #000 0,
+                #000 2px,
+                #fff 2px,
+                #fff 4px,
+                #000 4px,
+                #000 7px
+            );
+        }
+
+        /* Presentation Label Outside Receipt Paper */
+        .receipt-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .presentation-label {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1e293b;
+            background-color: #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border: 1px solid #94a3b8;
+        }
+
+        /* Thermal Printing Optimizations */
+        @media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+
+            .receipts-layout {
+                display: block !important;
+            }
+
+            .presentation-label {
+                display: none !important;
+            }
+
+            .receipt-card {
+                box-shadow: none !important;
+                border: none !important;
+                width: 80mm !important;
+                max-width: 80mm !important;
+                padding: 0 !important;
+                margin: 0 auto 30px auto !important;
+                page-break-after: always;
+            }
+
+            .receipt-card::after {
+                display: none !important;
+            }
+
+            @page {
+                margin: 0;
+                size: 80mm auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipts-layout">
+
+        <!-- =================================================================
+             1. KITCHEN ORDER TICKET (KOT)
+             ================================================================= -->
+        <div class="receipt-column">
+            <div class="presentation-label">1. Kitchen Order Ticket (KOT)</div>
+            <article class="receipt-card">
+                <div class="text-center">
+                    <p class="font-bold uppercase" style="font-size: 14px;">*** KITCHEN TICKET ***</p>
+                    <div class="divider-double">================================</div>
+                    <p class="font-bold" style="font-size: 18px;">TABLE: T-12</p>
+                    <div class="divider-single">--------------------------------</div>
+                </div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <p>KOT NO : KOT-089</p>
+                    <p>TIME   : 18 SEP 2026 07:42 PM</p>
+                    <p>SERVER : MICHAEL R.</p>
+                    <p>TYPE   : DINE-IN</p>
+                </div>
+
+                <div class="divider-double">================================</div>
+                <div class="flex-between font-bold" style="font-size: 11px;">
+                    <span>ITEM DESCRIPTION</span>
+                    <span>QTY</span>
+                </div>
+                <div class="divider-double">================================</div>
+
+                <div class="spacing-md" style="margin: 10px 0;">
+                    <div>
+                        <div class="font-bold flex-between" style="font-size: 13px;">
+                            <span>TRUFFLE BURGER</span>
+                            <span>2x</span>
+                        </div>
+                        <div style="padding-left: 16px; font-size: 10px; font-weight: 700;">* NOTE: MEDIUM RARE, NO MAYO</div>
+                    </div>
+
+                    <div>
+                        <div class="font-bold flex-between" style="font-size: 13px;">
+                            <span>WOODFIRED PIZZA</span>
+                            <span>1x</span>
+                        </div>
+                        <div style="padding-left: 16px; font-size: 10px; font-weight: 700;">* NOTE: EXTRA BASIL, THIN CRUST</div>
+                    </div>
+
+                    <div>
+                        <div class="font-bold flex-between" style="font-size: 13px;">
+                            <span>ICED MACCHIATO</span>
+                            <span>1x</span>
+                        </div>
+                        <div style="padding-left: 16px; font-size: 10px; font-weight: 700;">* NOTE: OAT MILK, LESS ICE</div>
+                    </div>
+
+                    <div>
+                        <div class="font-bold flex-between" style="font-size: 13px;">
+                            <span>SPARKLING LEMON</span>
+                            <span>2x</span>
+                        </div>
+                        <div style="padding-left: 16px; font-size: 10px; font-weight: 700;">* NOTE: WITH ICE</div>
+                    </div>
+                </div>
+
+                <div class="divider-double">================================</div>
+                <div class="text-center font-bold" style="font-size: 10px; margin-top: 10px;">
+                    [ END OF ORDER - COOK PROMPTLY ]
+                </div>
+            </article>
+        </div>
+
+
+        <!-- =================================================================
+             2. COUNTER PREVIEW BILL (UNPAID ESTIMATE)
+             ================================================================= -->
+        <div class="receipt-column">
+            <div class="presentation-label">2. Counter Preview Bill</div>
+            <article class="receipt-card">
+                <div class="text-center spacing-sm">
+                    <p class="font-bold uppercase" style="font-size: 14px;">THE URBAN BISTRO</p>
+                    <p style="font-size: 11px;">742 Evergreen Terrace, Sector 4</p>
+                    <div class="divider-single">--------------------------------</div>
+                    <p class="font-bold" style="font-size: 11px;">** PREVIEW CHECK (UNPAID) **</p>
+                    <div class="divider-single">--------------------------------</div>
+                </div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <p>TABLE  : T-12</p>
+                    <p>SERVER : MICHAEL R.</p>
+                    <p>DATE   : 18 SEP 2026 07:42 PM</p>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="flex-between font-bold" style="font-size: 10px;">
+                    <span>QTY ITEM</span>
+                    <span>AMT ($)</span>
+                </div>
+                <div class="divider-single">--------------------------------</div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <div class="flex-between">
+                        <span class="truncate">2 x Truffle Burger</span>
+                        <span>29.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span class="truncate">1 x Woodfired Pizza</span>
+                        <span>18.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span class="truncate">1 x Iced Macchiato</span>
+                        <span>5.50</span>
+                    </div>
+                    <div class="flex-between">
+                        <span class="truncate">2 x Sparkling Lemon</span>
+                        <span>8.00</span>
+                    </div>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="spacing-sm" style="font-size: 11px;">
+                    <div class="flex-between"><span>SUBTOTAL</span><span>60.50</span></div>
+                    <div class="flex-between"><span>DISCOUNT</span><span>-5.00</span></div>
+                    <div class="flex-between"><span>TAX (5.0%)</span><span>2.78</span></div>
+                </div>
+
+                <div class="divider-double">================================</div>
+                <div class="flex-between font-bold" style="font-size: 15px; margin: 4px 0;">
+                    <span>EST. TOTAL</span>
+                    <span>$58.28</span>
+                </div>
+                <div class="divider-double">================================</div>
+
+                <div class="text-center font-bold" style="font-size: 10px; margin-top: 12px; line-height: 1.3;">
+                    * NO PAYMENT RECEIVED *<br>PLEASE PRESENT TO CASHIER
+                </div>
+            </article>
+        </div>
+
+
+        <!-- =================================================================
+             3. PAY & PRINT FINAL BILL (PAID RECEIPT)
+             ================================================================= -->
+        <div class="receipt-column">
+            <div class="presentation-label">3. Pay & Print Final Bill</div>
+            <article class="receipt-card">
+                <div class="text-center spacing-sm">
+                    <p class="font-bold uppercase" style="font-size: 15px;">THE URBAN BISTRO</p>
+                    <p style="font-size: 10px;">742 Evergreen Terrace, Sector 4</p>
+                    <p style="font-size: 10px;">TEL: +1 (555) 019-2834</p>
+                    <p style="font-size: 10px;">GSTIN: 27AABCU9639R1ZM</p>
+                    <div class="divider-double">================================</div>
+                    <p class="font-bold" style="font-size: 12px;">*** FINAL CASH RECEIPT ***</p>
+                    <div class="divider-double">================================</div>
+                </div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <p>INV NO : INV-2026-4092</p>
+                    <p>DATE   : 18 SEP 2026 07:42 PM</p>
+                    <p>TABLE  : T-12 | SERVER: MICHAEL R.</p>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="flex-between font-bold" style="font-size: 10px;">
+                    <span>QTY DESCRIPTION</span>
+                    <span>PRICE ($)</span>
+                </div>
+                <div class="divider-single">--------------------------------</div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <div class="flex-between">
+                        <span>2 x Truffle Burger</span>
+                        <span>29.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>1 x Woodfired Pizza</span>
+                        <span>18.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>1 x Iced Macchiato</span>
+                        <span>5.50</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>2 x Sparkling Lemon</span>
+                        <span>8.00</span>
+                    </div>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="spacing-sm" style="font-size: 11px;">
+                    <div class="flex-between"><span>SUB TOTAL</span><span>60.50</span></div>
+                    <div class="flex-between"><span>DISCOUNT</span><span>-5.00</span></div>
+                    <div class="flex-between"><span>TAX (5.0%)</span><span>2.78</span></div>
+                </div>
+
+                <div class="divider-double">================================</div>
+                <div class="flex-between font-bold" style="font-size: 16px; margin: 4px 0;">
+                    <span>TOTAL PAID</span>
+                    <span>$58.28</span>
+                </div>
+                <div class="divider-double">================================</div>
+
+                <div class="text-center spacing-sm" style="font-size: 10px; margin-top: 12px;">
+                    <p class="font-bold">THANK YOU FOR YOUR VISIT!</p>
+                    <p>PLEASE COME AGAIN</p>
+                </div>
+            </article>
+        </div>
+
+
+        <!-- =================================================================
+             4. TAKEAWAY RECEIPT (PICKUP ORDER)
+             ================================================================= -->
+        <div class="receipt-column">
+            <div class="presentation-label">4. Takeaway Receipt</div>
+            <article class="receipt-card">
+                <div class="text-center spacing-sm">
+                    <p class="font-bold uppercase" style="font-size: 15px;">THE URBAN BISTRO</p>
+                    <p style="font-size: 10px;">742 Evergreen Terrace, Sector 4</p>
+                    <p style="font-size: 10px;">TEL: +1 (555) 019-2834</p>
+                    <div class="divider-double">================================</div>
+                    <p class="font-bold uppercase" style="font-size: 14px;">*** TAKEAWAY ORDER ***</p>
+                    <div class="divider-double">================================</div>
+                    <p class="font-bold" style="font-size: 18px;">TOKEN: #TK-045</p>
+                    <div class="divider-single">--------------------------------</div>
+                </div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <p>ORD NO : TAK-2026-104</p>
+                    <p>CUST   : SARAH CONNOR</p>
+                    <p>PHONE  : +1 (555) 987-6543</p>
+                    <p>DATE   : 18 SEP 2026 08:15 PM</p>
+                    <p>STATUS : PAID (ONLINE)</p>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="flex-between font-bold" style="font-size: 10px;">
+                    <span>QTY DESCRIPTION</span>
+                    <span>PRICE ($)</span>
+                </div>
+                <div class="divider-single">--------------------------------</div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <div class="flex-between">
+                        <span>2 x Truffle Burger</span>
+                        <span>29.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>1 x Woodfired Pizza</span>
+                        <span>18.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>1 x Iced Macchiato</span>
+                        <span>5.50</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>2 x Sparkling Lemon</span>
+                        <span>8.00</span>
+                    </div>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="spacing-sm" style="font-size: 11px;">
+                    <div class="flex-between"><span>SUB TOTAL</span><span>60.50</span></div>
+                    <div class="flex-between"><span>DISCOUNT</span><span>-5.00</span></div>
+                    <div class="flex-between"><span>TAX (5.0%)</span><span>2.78</span></div>
+                </div>
+
+                <div class="divider-double">================================</div>
+                <div class="flex-between font-bold" style="font-size: 16px; margin: 4px 0;">
+                    <span>TOTAL PAID</span>
+                    <span>$58.28</span>
+                </div>
+                <div class="divider-double">================================</div>
+
+                <div class="text-center font-bold" style="font-size: 10px; margin-top: 12px; line-height: 1.3;">
+                    [ READY FOR COUNTER PICKUP ]<br>THANK YOU FOR ORDERING!
+                </div>
+            </article>
+        </div>
+
+
+        <!-- =================================================================
+             5. DELIVERY RECEIPT (RIDER & CUSTOMER COPY)
+             ================================================================= -->
+        <div class="receipt-column">
+            <div class="presentation-label">5. Delivery Receipt</div>
+            <article class="receipt-card">
+                <div class="text-center spacing-sm">
+                    <p class="font-bold uppercase" style="font-size: 15px;">THE URBAN BISTRO</p>
+                    <p style="font-size: 10px;">742 Evergreen Terrace, Sector 4</p>
+                    <p style="font-size: 10px;">TEL: +1 (555) 019-2834</p>
+                    <div class="divider-double">================================</div>
+                    <p class="font-bold uppercase" style="font-size: 14px;">*** DELIVERY RECEIPT ***</p>
+                    <div class="divider-double">================================</div>
+                </div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <p>ORD NO : DEL-2026-8841</p>
+                    <p>DATE   : 18 SEP 2026 08:30 PM</p>
+                    <p>DRIVER : IN-HOUSE (JOHN D.)</p>
+                    <p>PAYMENT: CASH ON DELIVERY</p>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="spacing-sm" style="font-size: 11px;">
+                    <p class="font-bold">CUSTOMER DETAILS:</p>
+                    <p>NAME : ALEX MERCER</p>
+                    <p>TEL  : +1 (555) 234-5678</p>
+                    <p>ADDR : 1042 MAPLE AVE, APT 4B</p>
+                    <p>       SECTOR 5, DOWNTOWN</p>
+                    <p class="font-bold" style="margin-top: 2px;">* NOTE: RING BELL, LEAVE AT DOOR</p>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="flex-between font-bold" style="font-size: 10px;">
+                    <span>QTY DESCRIPTION</span>
+                    <span>PRICE ($)</span>
+                </div>
+                <div class="divider-single">--------------------------------</div>
+
+                <div class="spacing-sm" style="font-size: 11px; margin: 8px 0;">
+                    <div class="flex-between">
+                        <span>2 x Truffle Burger</span>
+                        <span>29.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>1 x Woodfired Pizza</span>
+                        <span>18.00</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>1 x Iced Macchiato</span>
+                        <span>5.50</span>
+                    </div>
+                    <div class="flex-between">
+                        <span>2 x Sparkling Lemon</span>
+                        <span>8.00</span>
+                    </div>
+                </div>
+
+                <div class="divider-single">--------------------------------</div>
+                <div class="spacing-sm" style="font-size: 11px;">
+                    <div class="flex-between"><span>SUB TOTAL</span><span>60.50</span></div>
+                    <div class="flex-between"><span>DISCOUNT</span><span>-5.00</span></div>
+                    <div class="flex-between"><span>DELIVERY FEE</span><span>5.00</span></div>
+                    <div class="flex-between"><span>TAX (5.0%)</span><span>2.78</span></div>
+                </div>
+
+                <div class="divider-double">================================</div>
+                <div class="flex-between font-bold" style="font-size: 16px; margin: 4px 0;">
+                    <span>COLLECT CASH</span>
+                    <span>$63.28</span>
+                </div>
+                <div class="divider-double">================================</div>
+
+                <div class="text-center font-bold" style="font-size: 10px; margin-top: 12px; line-height: 1.3;">
+                    * CASH ON DELIVERY (COD) *<br>DRIVER: PLEASE COLLECT EXACT AMOUNT
+                </div>
+            </article>
+        </div>
+
+    </div>
+
+</body>
+</html>
